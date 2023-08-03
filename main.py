@@ -23,7 +23,7 @@ def get_extension(img_url):
     return extension
 
 
-def get_comic_info(comic_num):
+def get_comic(comic_num):
     comic_info_url = "https://xkcd.com/{comic}/info.0.json"
 
     response = requests.get(comic_info_url.format(comic=comic_num))
@@ -116,10 +116,10 @@ def get_comics_num():
     return response.json()["num"]
 
 
-def generate_random_comic():
+def get_random_comic():
     total_comics = get_comics_num()
     random_comic_num = random.randint(1, total_comics)
-    img_url, comment, title, comic_num = get_comic_info(random_comic_num)
+    img_url, comment, title, comic_num = get_comic(random_comic_num)
     return img_url, comment, title, comic_num
 
 
@@ -139,7 +139,7 @@ def main():
     access_token = os.environ['VK_ACCESS_TOKEN']
 
     try:
-        img_url, author_comment, title, comic_num = generate_random_comic()
+        img_url, author_comment, title, comic_num = get_random_comic()
         comic_filepath = download_image(title, img_url)
         print(publish_to_group(access_token, group_id, api_version, comic_filepath, author_comment, comic_num))
     finally:
