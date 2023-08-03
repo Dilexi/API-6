@@ -91,7 +91,6 @@ def publish_to_group(token, group_id, version, filename, comment, comic_num):
     response = requests.post(url, params=params)
     response.raise_for_status()
     check_response(response.json())
-    return f"Комикс №{comic_num} загружен в группу {group_id}."
 
 
 def get_comics_num():
@@ -124,8 +123,8 @@ def main():
     try:
         img_url, author_comment, title, comic_num = get_random_comic()
         comic_filepath = download_image(title, img_url)
-        result = publish_to_group(access_token, group_id, api_version,
-                                  comic_filepath, author_comment, comic_num)
+        publish_to_group(access_token, group_id, api_version, comic_filepath, author_comment, comic_num)
+        result = f"Комикс №{comic_num} загружен в группу {group_id}"
         print(result)
     finally:
         os.remove(comic_filepath)
