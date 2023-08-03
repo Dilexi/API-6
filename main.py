@@ -136,7 +136,6 @@ def main():
     api_version = 5.131
     
     group_id = os.environ['VK_GROUP_ID']
-    client_id = os.environ['VK_CLIENT_ID']
     access_token = os.environ['VK_ACCESS_TOKEN']
 
     try:
