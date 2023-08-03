@@ -1,6 +1,5 @@
 import os
 import random
-
 import requests
 from dotenv import load_dotenv
 from urllib.parse import urlparse
@@ -8,10 +7,8 @@ from urllib.parse import urlparse
 
 def download_image(name, img_url):
     filepath = f"{name}{get_extension(img_url)}"
-
     response = requests.get(img_url)
     response.raise_for_status()
-
     with open(filepath, "wb") as file:
         file.write(response.content)
     return filepath
@@ -25,7 +22,6 @@ def get_extension(img_url):
 
 def get_comic(comic_num):
     comic_info_url = "https://xkcd.com/{comic}/info.0.json"
-
     response = requests.get(comic_info_url.format(comic=comic_num))
     response.raise_for_status()
     answer = response.json()
@@ -37,12 +33,7 @@ def get_comic(comic_num):
 
 def get_upload_url(token, group_id, version):
     url = "https://api.vk.com/method/photos.getWallUploadServer"
-    params = {
-        "access_token": token,
-        "v": version,
-        "group_id": group_id
-    }
-
+    params = {"access_token": token, "v": version, "group_id": group_id}
     response = requests.get(url, params=params)
     response.raise_for_status()
     answer = response.json()
@@ -53,10 +44,7 @@ def get_upload_url(token, group_id, version):
 def upload_to_server(token, group_id, version, filename):
     url = get_upload_url(token, group_id, version)
     with open(filename, "rb") as file:
-        files = {
-            "photo": file
-        }
-
+        files = {"photo": file}
         response = requests.post(url, files=files)
         response.raise_for_status()
     answer = response.json()
@@ -68,9 +56,9 @@ def upload_to_server(token, group_id, version, filename):
 
 
 def save_photo_to_wall(token, group_id, version, filename):
+    server, response_hash, photo = upload_to_server(token, group_id, version,
+                                                    filename)
     url = "https://api.vk.com/method/photos.saveWallPhoto"
-    server, response_hash, photo = upload_to_server(token, group_id, version, filename)
-
     params = {
         "access_token": token,
         "photo": photo,
@@ -79,7 +67,6 @@ def save_photo_to_wall(token, group_id, version, filename):
         "server": server,
         "hash": response_hash
     }
-
     response = requests.post(url, params=params)
     response.raise_for_status()
     answer = response.json()
@@ -88,12 +75,11 @@ def save_photo_to_wall(token, group_id, version, filename):
 
 
 def publish_to_group(token, group_id, version, filename, comment, comic_num):
-    url = "https://api.vk.com/method/wall.post"
     saved_photo_info = save_photo_to_wall(token, group_id, version, filename)
     owner_id = saved_photo_info["response"][0]["owner_id"]
     media_id = saved_photo_info["response"][0]["id"]
     attachments = f"photo{owner_id}_{media_id}"
-
+    url = "https://api.vk.com/method/wall.post"
     params = {
         "access_token": token,
         "attachments": attachments,
@@ -102,7 +88,6 @@ def publish_to_group(token, group_id, version, filename, comment, comic_num):
         "message": comment,
         "from_group": "1"
     }
-
     response = requests.post(url, params=params)
     response.raise_for_status()
     check_response(response.json())
@@ -132,21 +117,19 @@ def check_response(response):
 
 def main():
     load_dotenv()
-
     api_version = 5.131
-    
     group_id = os.environ['VK_GROUP_ID']
     access_token = os.environ['VK_ACCESS_TOKEN']
 
     try:
         img_url, author_comment, title, comic_num = get_random_comic()
         comic_filepath = download_image(title, img_url)
-        print(publish_to_group(access_token, group_id, api_version, comic_filepath, author_comment, comic_num))
+        result = publish_to_group(access_token, group_id, api_version,
+                                  comic_filepath, author_comment, comic_num)
+        print(result)
     finally:
         os.remove(comic_filepath)
 
 
 if __name__ == "__main__":
     main()
-
-
