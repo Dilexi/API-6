@@ -46,7 +46,7 @@ def upload_to_server(token, group_id, version, filename):
     with open(filename, "rb") as file:
         files = {"photo": file}
         response = requests.post(url, files=files)
-        response.raise_for_status()
+    response.raise_for_status()
     answer = response.json()
     check_response(answer)
     server = answer["server"]
