@@ -124,8 +124,8 @@ def main():
         img_url, author_comment, title, comic_num = get_random_comic()
         comic_filepath = download_image(title, img_url)
         publish_to_group(access_token, group_id, api_version, comic_filepath, author_comment, comic_num)
-        result = f"Комикс №{comic_num} загружен в группу {group_id}"
-        print(result)
+        download_notification = f"Комикс №{comic_num} загружен в группу {group_id}"
+        print(download_notification)
     finally:
         os.remove(comic_filepath)
 
