@@ -36,13 +36,13 @@ def get_upload_url(token, group_id, version):
     params = {"access_token": token, "v": version, "group_id": group_id}
     response = requests.get(url, params=params)
     response.raise_for_status()
-    answer = response.json()
-    check_response(answer)
-    return answer["response"]["upload_url"]
+    photo_upload_url = response.json()["response"]["upload_url"]
+    check_response(photo_upload_url)
+    return photo_upload_url
 
 
-def upload_to_server(token, group_id, version, filename):
-    url = get_upload_url(token, group_id, version)
+def upload_to_server(token, group_id, version, filename, photo_upload_url):
+    url = photo_upload_url
     with open(filename, "rb") as file:
         files = {"photo": file}
         response = requests.post(url, files=files)
@@ -55,9 +55,8 @@ def upload_to_server(token, group_id, version, filename):
     return server, response_hash, photo
 
 
-def save_photo_to_wall(token, group_id, version, filename):
-    server, response_hash, photo = upload_to_server(token, group_id, version,
-                                                    filename)
+def save_photo_to_wall(token, group_id, version, filename, server, response_hash, photo):
+    server, response_hash, photo = server, response_hash, photo
     url = "https://api.vk.com/method/photos.saveWallPhoto"
     params = {
         "access_token": token,
@@ -74,8 +73,8 @@ def save_photo_to_wall(token, group_id, version, filename):
     return answer
 
 
-def publish_to_group(token, group_id, version, filename, comment, comic_num):
-    saved_photo_info = save_photo_to_wall(token, group_id, version, filename)
+def publish_to_group(token, group_id, version, filename, comment, comic_num, answer):
+    saved_photo_info = answer
     owner_id = saved_photo_info["response"][0]["owner_id"]
     media_id = saved_photo_info["response"][0]["id"]
     attachments = f"photo{owner_id}_{media_id}"
@@ -119,11 +118,14 @@ def main():
     api_version = 5.131
     group_id = os.environ['VK_GROUP_ID']
     access_token = os.environ['VK_ACCESS_TOKEN']
-
+    
     try:
         img_url, author_comment, title, comic_num = get_random_comic()
         comic_filepath = download_image(title, img_url)
-        publish_to_group(access_token, group_id, api_version, comic_filepath, author_comment, comic_num)
+        photo_upload_url = get_upload_url(access_token, group_id, api_version)
+        server, response_hash, photo = upload_to_server(access_token, group_id, api_version, comic_filepath, photo_upload_url)
+        answer = save_photo_to_wall(access_token, group_id, api_version, comic_filepath, server, response_hash, photo)
+        publish_to_group(access_token, group_id, api_version, comic_filepath, author_comment, comic_num, answer)
         download_notification = f"Комикс №{comic_num} загружен в группу {group_id}"
         print(download_notification)
     finally:
