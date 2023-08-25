@@ -42,7 +42,7 @@ def get_upload_url(token, group_id, version):
     return photo_upload_url
 
 
-def upload_to_server(token, group_id, version, filename, photo_upload_url):
+def upload_to_server(filename, photo_upload_url):
     with open(filename, "rb") as file:
         files = {"photo": file}
         response = requests.post(photo_upload_url, files=files)
@@ -72,7 +72,7 @@ def save_photo_to_wall(token, group_id, version, server, response_hash, photo):
     return answer
 
 
-def publish_to_group(token, group_id, version, comment, comic_num, answer):
+def publish_to_group(token, group_id, version, comment, answer):
     owner_id = answer["response"][0]["owner_id"]
     media_id = answer["response"][0]["id"]
     attachments = f"photo{owner_id}_{media_id}"
@@ -121,9 +121,9 @@ def main():
         img_url, author_comment, title, comic_num = get_random_comic()
         comic_filepath = download_image(title, img_url)
         photo_upload_url = get_upload_url(access_token, group_id, api_version)
-        server, response_hash, photo = upload_to_server(access_token, group_id, api_version, comic_filepath, photo_upload_url)
+        server, response_hash, photo = upload_to_server(comic_filepath, photo_upload_url)
         answer = save_photo_to_wall(access_token, group_id, api_version, server, response_hash, photo)
-        publish_to_group(access_token, group_id, api_version, author_comment, comic_num, answer)
+        publish_to_group(access_token, group_id, api_version, author_comment, answer)
         download_notification = f"Комикс №{comic_num} загружен в группу {group_id}"
         print(download_notification)
     finally:
