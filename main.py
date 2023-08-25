@@ -36,8 +36,9 @@ def get_upload_url(token, group_id, version):
     params = {"access_token": token, "v": version, "group_id": group_id}
     response = requests.get(url, params=params)
     response.raise_for_status()
-    check_response(response.json())
-    photo_upload_url = response.json()["response"]["upload_url"]
+    response_dict = response.json()
+    check_response(response_dict)
+    photo_upload_url = response_dict["response"]["upload_url"]
     return photo_upload_url
 
 
