@@ -72,9 +72,7 @@ def save_photo_to_wall(token, group_id, version, server, response_hash, photo):
     return answer
 
 
-def publish_to_group(token, group_id, version, comment, answer):
-    owner_id = answer["response"][0]["owner_id"]
-    media_id = answer["response"][0]["id"]
+def publish_to_group(token, group_id, version, comment, owner_id, media_id):
     attachments = f"photo{owner_id}_{media_id}"
     url = "https://api.vk.com/method/wall.post"
     params = {
@@ -123,7 +121,9 @@ def main():
         photo_upload_url = get_upload_url(access_token, group_id, api_version)
         server, response_hash, photo = upload_to_server(comic_filepath, photo_upload_url)
         answer = save_photo_to_wall(access_token, group_id, api_version, server, response_hash, photo)
-        publish_to_group(access_token, group_id, api_version, author_comment, answer)
+        owner_id = answer["response"][0]["owner_id"]
+        media_id = answer["response"][0]["id"]
+        publish_to_group(access_token, group_id, api_version, author_comment, owner_id, media_id)
         download_notification = f"Комикс №{comic_num} загружен в группу {group_id}"
         print(download_notification)
     finally:
